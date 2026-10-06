@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem DBR - MAN 1 Tanah Datar</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS CDN untuk Olah Data Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        .hero-banner {
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .hero-overlay {
+            background: linear-gradient(135deg, rgba(6, 78, 59, 0.90) 0%, rgba(4, 120, 87, 0.85) 50%, rgba(15, 118, 110, 0.85) 100%);
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
+
+    <!-- Header / Navbar -->
+    <header class="bg-emerald-900 text-white shadow-md sticky top-0 z-30 border-b border-emerald-700/50">
+        <div class="container mx-auto px-4 py-2.5 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <!-- Logo Madrasah -->
+                <div class="bg-white p-1 rounded-xl shadow-md flex items-center justify-center overflow-hidden w-10 h-10 border border-slate-200">
+                    <img id="app-logo" src="https://lh3.googleusercontent.com/d/1000109313.jpg" alt="Logo Madrasah" class="w-full h-full object-contain">
+                </div>
+                <div>
+                    <!-- Tulisan e-DBR MADRASAH -->
+                    <h1 id="app-title-nav" class="font-bold text-base md:text-lg leading-tight tracking-wide">e-DBR MADRASAH</h1>
+                    <p id="app-subtitle-nav" class="text-[11px] text-emerald-200 font-medium">MAN 1 Tanah Datar Plus Keterampilan</p>
+                </div>
+            </div>
+            
+            <div id="nav-actions">
+                <!-- Tombol Login Publik -->
+                <button id="btn-show-login" onclick="toggleModal('login-modal')" class="flex items-center space-x-2 bg-emerald-800 hover:bg-emerald-700 text-emerald-100 px-3.5 py-1.5 rounded-xl text-xs font-semibold shadow-sm transition border border-emerald-600/50">
+                    <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                    <span>Login Admin</span>
+                </button>
+                <!-- Badge Status Admin -->
+                <div id="admin-badge" class="hidden flex items-center space-x-2 md:space-x-3">
+                    <button onclick="openSettingsModal()" class="bg-amber-500 hover:bg-amber-600 text-emerald-950 font-bold text-xs px-3 py-1.5 rounded-xl shadow flex items-center gap-1.5 transition">
+                        <i data-lucide="sliders" class="w-3.5 h-3.5"></i> Atur Tampilan
+                    </button>
+                    <button onclick="logoutAdmin()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition shadow flex items-center gap-1">
+                        <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Keluar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Banner Profil Sekolah -->
+    <section id="hero-section" class="hero-banner text-white py-6 md:py-10 px-4 shadow-inner relative overflow-hidden">
+        <div class="hero-overlay"></div>
+        <div class="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
+            <div class="max-w-2xl text-center md:text-left">
+                <span class="inline-block bg-amber-400/20 text-amber-300 text-xs px-3 py-0.5 rounded-full font-bold mb-2 border border-amber-400/30 tracking-wide">
+                    Sistem Digital Daftar Barang Ruangan (DBR)
+                </span>
+                <h2 id="banner-heading" class="text-xl md:text-3xl font-extrabold tracking-tight mb-1 text-white">
+                    Manajemen Inventaris Ruangan Madrasah
+                </h2>
+                <p id="banner-desc" class="text-xs md:text-sm text-emerald-100/90 leading-relaxed max-w-xl">
+                    Pantau kondisi aset, fasilitas kelas, laboratorium, dan sarana prasarana MAN 1 Tanah Datar Plus Keterampilan secara real-time dan transparan.
+                </p>
+            </div>
+            
+            <!-- Kartu Lokasi Ringkas -->
+            <div class="bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/20 text-center md:text-right shadow-md self-center md:self-auto inline-flex flex-col items-center md:items-end">
+                <div class="flex items-center space-x-1.5">
+                    <i data-lucide="map-pin" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span id="banner-location" class="text-xs font-bold text-amber-300">Kec. Sungayang</span>
+                </div>
+                <p id="banner-district" class="text-[10px] text-emerald-100 font-medium">Kabupaten Tanah Datar</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6 flex-grow -mt-4 relative z-20">
+        
+        <!-- Dashboard Statistik -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Total Barang</p>
+                    <h3 id="stat-total" class="text-2xl font-extrabold text-slate-800 mt-0.5">0</h3>
+                </div>
+                <div class="bg-blue-50 text-blue-600 p-3 rounded-xl">
+                    <i data-lucide="boxes" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Kondisi Baik</p>
+                    <h3 id="stat-baik" class="text-2xl font-extrabold text-emerald-600 mt-0.5">0</h3>
+                </div>
+                <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl">
+                    <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Rusak Ringan</p>
+                    <h3 id="stat-rr" class="text-2xl font-extrabold text-amber-500 mt-0.5">0</h3>
+                </div>
+                <div class="bg-amber-50 text-amber-500 p-3 rounded-xl">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Rusak Berat</p>
+                    <h3 id="stat-rb" class="text-2xl font-extrabold text-rose-600 mt-0.5">0</h3>
+                </div>
+                <div class="bg-rose-50 text-rose-600 p-3 rounded-xl">
+                    <i data-lucide="x-circle" class="w-6 h-6"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar: Pencarian & Aksi -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm mb-6 flex flex-col md:flex-row gap-3 justify-between items-stretch">
+            <div class="flex flex-col sm:flex-row gap-2.5 flex-grow">
+                <div class="relative flex-grow">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="search-input" oninput="applyFilters()" placeholder="Cari barang atau penanggungjawab..." class="pl-10 pr-4 py-2 border border-slate-200 rounded-xl w-full text-xs md:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50/50">
+                </div>
+                <select id="filter-ruangan" onchange="applyFilters()" class="border border-slate-200 rounded-xl px-3 py-2 text-xs md:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50/50 font-medium">
+                    <option value="">Semua Ruangan</option>
+                </select>
+                <select id="filter-kondisi" onchange="applyFilters()" class="border border-slate-200 rounded-xl px-3 py-2 text-xs md:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50/50 font-medium">
+                    <option value="">Semua Kondisi</option>
+                    <option value="Baik">Baik</option>
+                    <option value="Rusak Ringan">Rusak Ringan</option>
+                    <option value="Rusak Berat">Rusak Berat</option>
+                </select>
+            </div>
+
+            <div class="flex gap-2 justify-end">
+                <div id="admin-actions" class="hidden flex gap-2">
+                    <button onclick="openFormModal()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 shadow-sm whitespace-nowrap">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Tambah
+                    </button>
+                    <label class="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 shadow-sm whitespace-nowrap">
+                        <i data-lucide="file-up" class="w-4 h-4"></i> Import Excel
+                        <input type="file" id="excel-file-input" accept=".xlsx, .xls" onchange="importExcel(event)" class="hidden">
+                    </label>
+                </div>
+
+                <button onclick="exportExcel()" class="bg-slate-800 hover:bg-slate-900 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 shadow-sm whitespace-nowrap">
+                    <i data-lucide="file-down" class="w-4 h-4"></i> Export Laporan
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabel Data (Desktop) -->
+        <div class="hidden md:block bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 font-bold text-xs uppercase tracking-wider">
+                        <tr>
+                            <th class="p-3.5 text-center w-12">No</th>
+                            <th class="p-3.5">Nama Barang</th>
+                            <th class="p-3.5 text-center">Jumlah</th>
+                            <th class="p-3.5">Lokasi Ruangan</th>
+                            <th class="p-3.5">Penanggungjawab</th>
+                            <th class="p-3.5 text-center">Kondisi</th>
+                            <th class="p-3.5">Keterangan</th>
+                            <th class="p-3.5 text-center admin-col hidden">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="divide-y divide-slate-100 text-slate-700">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tampilan Kartu (Mobile) -->
+        <div id="mobile-cards" class="grid grid-cols-1 gap-3 md:hidden">
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 mt-auto">
+        <div class="container mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p id="footer-text">&copy; 2026 MAN 1 Tanah Datar Plus Keterampilan — Sungayang</p>
+            <p class="text-slate-400">Sistem Informasi Daftar Barang Ruangan (DBR)</p>
+        </div>
+    </footer>
+
+    <!-- MODAL 1: Login Admin -->
+    <div id="login-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl relative border border-slate-100">
+            <div class="text-center mb-5">
+                <div class="bg-emerald-50 w-12 h-12 rounded-2xl mx-auto flex items-center justify-center text-emerald-800 mb-2">
+                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800">Login Administrator</h3>
+                <p class="text-xs text-slate-500">Akses khusus untuk mengelola inventaris DBR</p>
+            </div>
+            
+            <form onsubmit="handleLogin(event)">
+                <div class="mb-4">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Password Admin</label>
+                    <input type="password" id="admin-pass" placeholder="Masukkan password..." class="w-full border border-slate-200 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50" required>
+                    <p id="login-error" class="text-xs text-rose-500 mt-1 hidden font-medium">Password salah! Silakan coba lagi.</p>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="toggleModal('login-modal')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Batal</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-semibold bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl shadow">Masuk Mode Admin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Form Tambah/Edit Barang -->
+    <div id="form-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative border border-slate-100">
+            <h3 id="form-title" class="text-lg font-bold text-slate-800 mb-4">Tambah Barang DBR</h3>
+            
+            <form onsubmit="saveItem(event)" class="space-y-3">
+                <input type="hidden" id="item-id">
+                
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Barang *</label>
+                    <input type="text" id="input-nama" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs md:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50" required>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah *</label>
+                        <input type="number" id="input-jumlah" min="1" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs md:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Kondisi *</label>
+                        <select id="input-kondisi" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs md:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50 font-medium" required>
+                            <option value="Baik">Baik</option>
+                            <option value="Rusak Ringan">Rusak Ringan</option>
+                            <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Lokasi Ruangan *</label>
+                    <input type="text" id="input-ruangan" placeholder="Contoh: XI.F3 atau Lab Komputer" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs md:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50" required>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Penanggungjawab</label>
+                    <input type="text" id="input-pj" placeholder="Nama Guru / Staf" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs md:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Keterangan</label>
+                    <textarea id="input-keterangan" rows="2" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs md:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50" placeholder="Catatan tambahan..."></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="toggleModal('form-modal')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Batal</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-semibold bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl shadow">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Pengaturan Tampilan Admin -->
+    <div id="settings-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <i data-lucide="sliders" class="w-5 h-5 text-amber-500"></i> Pengaturan Tampilan App
+                </h3>
+                <button onclick="toggleModal('settings-modal')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <form onsubmit="saveAppSettings(event)" class="space-y-4">
+                
+                <!-- Upload / Link Logo -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Logo Sekolah / Madrasah</label>
+                    <div class="flex gap-2 items-center">
+                        <input type="file" id="upload-logo-file" accept="image/*" onchange="handleImageUpload(event, 'set-logo-url')" class="hidden">
+                        <label for="upload-logo-file" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer whitespace-nowrap flex items-center gap-1 border border-slate-200">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i> Upload Foto
+                        </label>
+                        <input type="text" id="set-logo-url" placeholder="Atau tempelkan URL Gambar Logo..." class="flex-grow border border-slate-200 rounded-xl p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50">
+                    </div>
+                </div>
+
+                <!-- Upload / Link Background Banner -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Foto Latar Belakang (Banner Header)</label>
+                    <div class="flex gap-2 items-center">
+                        <input type="file" id="upload-bg-file" accept="image/*" onchange="handleImageUpload(event, 'set-bg-url')" class="hidden">
+                        <label for="upload-bg-file" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer whitespace-nowrap flex items-center gap-1 border border-slate-200">
+                            <i data-lucide="image" class="w-3.5 h-3.5"></i> Upload Foto
+                        </label>
+                        <input type="text" id="set-bg-url" placeholder="Atau tempelkan URL Gambar Latar..." class="flex-grow border border-slate-200 rounded-xl p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Kecamatan / Lokasi</label>
+                        <input type="text" id="set-location" placeholder="Kec. Sungayang" class="w-full border border-slate-200 rounded-xl p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Kabupaten / Daerah</label>
+                        <input type="text" id="set-district" placeholder="Kabupaten Tanah Datar" class="w-full border border-slate-200 rounded-xl p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Judul Banner Utama</label>
+                    <input type="text" id="set-heading" placeholder="Manajemen Inventaris Ruangan Madrasah" class="w-full border border-slate-200 rounded-xl p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50" required>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Deskripsi Singkat Banner</label>
+                    <textarea id="set-desc" rows="2" class="w-full border border-slate-200 rounded-xl p-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-slate-50" placeholder="Deskripsi mengenai aplikasi DBR..."></textarea>
+                </div>
+
+                <div class="flex justify-between items-center pt-3 border-t border-slate-100">
+                    <button type="button" onclick="resetAppConfig()" class="text-xs text-rose-600 hover:underline font-medium">Reset Default</button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="toggleModal('settings-modal')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Batal</button>
+                        <button type="submit" class="px-4 py-2 text-xs font-semibold bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl shadow">Simpan Perubahan</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Logic JavaScript -->
+    <script>
+        // Data Bawaan Langsung Ditanamkan dari Data DBR.xlsx MAN 1 Tanah Datar (285 item)
+        const embeddedData = [{"id": "embed_0_b", "nama": "Sapu", "jumlah": 1, "pj": "Rita Amelia, S.Pd.Ing", "ruangan": "XI.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_1_b", "nama": "Kain pel", "jumlah": 1, "pj": "Rita Amelia, S.Pd.Ing", "ruangan": "XI.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_2_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "Rita Amelia, S.Pd.Ing", "ruangan": "XI.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_3_b", "nama": "Kemoceng", "jumlah": 1, "pj": "Rita Amelia, S.Pd.Ing", "ruangan": "XI.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_4_b", "nama": "CCTV", "jumlah": 1, "pj": "Rita Amelia, S.Pd.Ing", "ruangan": "XI.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_5_b", "nama": "Proyektor", "jumlah": 1, "pj": "Rita Amelia, S.Pd.Ing", "ruangan": "XI.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_6_b", "nama": "Papan tulis", "jumlah": 1, "pj": "Rita Amelia, S.Pd.Ing", "ruangan": "XI.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_7_b", "nama": "Meja guru", "jumlah": 1, "pj": "Rita Amelia, S.Pd.Ing", "ruangan": "XI.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_8_b", "nama": "Meja siswa", "jumlah": 18, "pj": "Rita Amelia, S.Pd.Ing", "ruangan": "XI.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_9_b", "nama": "Kursi siswa", "jumlah": 18, "pj": "Rita Amelia, S.Pd.Ing", "ruangan": "XI.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_10_b", "nama": "Kursi guru", "jumlah": 1, "pj": "Rita Amelia, S.Pd.Ing", "ruangan": "XI.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_11_b", "nama": "Meja Guru", "jumlah": 1, "pj": "Dra. Nilawati, S.Pd", "ruangan": "XII.F5", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_12_b", "nama": "Meja Siswa", "jumlah": 17, "pj": "Dra. Nilawati, S.Pd", "ruangan": "XII.F5", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_13_b", "nama": "Kursi", "jumlah": 18, "pj": "Dra. Nilawati, S.Pd", "ruangan": "XII.F5", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_14_b", "nama": "Infocus", "jumlah": 1, "pj": "Dra. Nilawati, S.Pd", "ruangan": "XII.F5", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_15_b", "nama": "Lemari", "jumlah": 1, "pj": "Dra. Nilawati, S.Pd", "ruangan": "XII.F5", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_16_b", "nama": "Papan Tulis", "jumlah": 1, "pj": "Dra. Nilawati, S.Pd", "ruangan": "XII.F5", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_17_b", "nama": "CCTV", "jumlah": 1, "pj": "Dra. Nilawati, S.Pd", "ruangan": "XII.F5", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_18_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "Dra. Nilawati, S.Pd", "ruangan": "XII.F5", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_19_b", "nama": "Sapu", "jumlah": 1, "pj": "Dra. Nilawati, S.Pd", "ruangan": "XII.F5", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_20_b", "nama": "Ember", "jumlah": 1, "pj": "Dra. Nilawati, S.Pd", "ruangan": "XII.F5", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_21_b", "nama": "Kain pel", "jumlah": 1, "pj": "Dra. Nilawati, S.Pd", "ruangan": "XII.F5", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_22_b", "nama": "Kemoceng", "jumlah": 1, "pj": "Dra. Nilawati, S.Pd", "ruangan": "XII.F5", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_23_b", "nama": "Meja guru", "jumlah": 1, "pj": "Nia Novitri, S.Pd", "ruangan": "XI.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_24_b", "nama": "Meja siswa", "jumlah": 18, "pj": "Nia Novitri, S.Pd", "ruangan": "XI.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_25_b", "nama": "Kursi siswa", "jumlah": 18, "pj": "Nia Novitri, S.Pd", "ruangan": "XI.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_26_b", "nama": "Kursi guru", "jumlah": 1, "pj": "Nia Novitri, S.Pd", "ruangan": "XI.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_27_b", "nama": "Lemari", "jumlah": 1, "pj": "Nia Novitri, S.Pd", "ruangan": "XI.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_28_b", "nama": "Papan tulis", "jumlah": 1, "pj": "Nia Novitri, S.Pd", "ruangan": "XI.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_29_b", "nama": "Sapu", "jumlah": 1, "pj": "Nia Novitri, S.Pd", "ruangan": "XI.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_30_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "Nia Novitri, S.Pd", "ruangan": "XI.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_31_b", "nama": "Kain pel", "jumlah": 1, "pj": "Nia Novitri, S.Pd", "ruangan": "XI.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_32_b", "nama": "Kemoceng", "jumlah": 1, "pj": "Nia Novitri, S.Pd", "ruangan": "XI.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_33_b", "nama": "Infocus", "jumlah": 1, "pj": "Nia Novitri, S.Pd", "ruangan": "XI.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_34_b", "nama": "CCTV", "jumlah": 1, "pj": "Nia Novitri, S.Pd", "ruangan": "XI.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_35_b", "nama": "Meja guru", "jumlah": 1, "pj": "H. Sukri, S.Ag", "ruangan": "X.E2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_36_b", "nama": "Kursi guru", "jumlah": 1, "pj": "H. Sukri, S.Ag", "ruangan": "X.E2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_37_b", "nama": "Infocus", "jumlah": 1, "pj": "H. Sukri, S.Ag", "ruangan": "X.E2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_38_b", "nama": "Meja siswa", "jumlah": 19, "pj": "H. Sukri, S.Ag", "ruangan": "X.E2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_38_rr", "nama": "Meja siswa", "jumlah": 4, "pj": "H. Sukri, S.Ag", "ruangan": "X.E2", "kondisi": "Rusak Ringan", "keterangan": ""}, {"id": "embed_39_b", "nama": "CCTV", "jumlah": 1, "pj": "H. Sukri, S.Ag", "ruangan": "X.E2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_40_b", "nama": "Kursi siswa", "jumlah": 17, "pj": "H. Sukri, S.Ag", "ruangan": "X.E2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_40_rr", "nama": "Kursi siswa", "jumlah": 4, "pj": "H. Sukri, S.Ag", "ruangan": "X.E2", "kondisi": "Rusak Ringan", "keterangan": ""}, {"id": "embed_41_b", "nama": "Kemoceng", "jumlah": 1, "pj": "H. Sukri, S.Ag", "ruangan": "X.E2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_42_b", "nama": "Lemari", "jumlah": 1, "pj": "H. Sukri, S.Ag", "ruangan": "X.E2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_43_b", "nama": "Sapu", "jumlah": 1, "pj": "H. Sukri, S.Ag", "ruangan": "X.E2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_44_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "H. Sukri, S.Ag", "ruangan": "X.E2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_45_b", "nama": "Papan tulis", "jumlah": 1, "pj": "H. Sukri, S.Ag", "ruangan": "X.E2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_46_b", "nama": "Tempat cuci tangan", "jumlah": 1, "pj": "H. Sukri, S.Ag", "ruangan": "X.E2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_47_b", "nama": "Ember", "jumlah": 1, "pj": "H. Sukri, S.Ag", "ruangan": "X.E2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_48_b", "nama": "Kasur Busa", "jumlah": 4, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_49_b", "nama": "Bantal", "jumlah": 4, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_50_b", "nama": "Sprei", "jumlah": 4, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_51_b", "nama": "Timbangan", "jumlah": 2, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_52_b", "nama": "Pengukur Tinggi Badan", "jumlah": 2, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_53_b", "nama": "Jam Dinding", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_54_b", "nama": "Dispenser", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_55_b", "nama": "Kompor Gas", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_56_b", "nama": "Kipas Angin", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_57_b", "nama": "Stetoskop", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_58_b", "nama": "Laptop", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_59_rb", "nama": "Printer", "jumlah": 4, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Rusak Berat", "keterangan": ""}, {"id": "embed_60_b", "nama": "Tempat Sampah", "jumlah": 2, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_61_b", "nama": "Meja Tulis", "jumlah": 3, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_62_b", "nama": "Kursi", "jumlah": 3, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_63_b", "nama": "Papan Informasi", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_64_b", "nama": "Peti Obat", "jumlah": 2, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_65_b", "nama": "Kasur", "jumlah": 2, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_65_rr", "nama": "Kasur", "jumlah": 2, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Rusak Ringan", "keterangan": ""}, {"id": "embed_66_b", "nama": "Sapu", "jumlah": 2, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_67_b", "nama": "Kemoceng", "jumlah": 2, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_68_b", "nama": "Box obat", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_68_rr", "nama": "Box obat", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Rusak Ringan", "keterangan": ""}, {"id": "embed_69_b", "nama": "Kain pel", "jumlah": 2, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_70_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_71_b", "nama": "Tensi meter digital", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_72_b", "nama": "Gunting medis", "jumlah": 2, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_73_b", "nama": "Pinset", "jumlah": 2, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_74_b", "nama": "Senter medis", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_75_rb", "nama": "Termometer", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Rusak Berat", "keterangan": ""}, {"id": "embed_76_b", "nama": "Pispot", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_77_rb", "nama": "Alat uji mata", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Rusak Berat", "keterangan": ""}, {"id": "embed_78_b", "nama": "Surgicall mask", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_79_b", "nama": "Sarung tangan lateks", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_80_b", "nama": "Kassa steril", "jumlah": 5, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_81_b", "nama": "Kapas", "jumlah": 2, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_82_b", "nama": "Perban", "jumlah": 10, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_83_rb", "nama": "Tensi meter", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Rusak Berat", "keterangan": ""}, {"id": "embed_84_rb", "nama": "Alat uji gula darah", "jumlah": 1, "pj": "Sepriana, S.Pd", "ruangan": "UKS", "kondisi": "Rusak Berat", "keterangan": ""}, {"id": "embed_85_b", "nama": "Sapu", "jumlah": 1, "pj": "Reflinas, S.Pd", "ruangan": "XI.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_86_b", "nama": "Kain pel", "jumlah": 1, "pj": "Reflinas, S.Pd", "ruangan": "XI.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_87_rr", "nama": "Wastafel", "jumlah": 1, "pj": "Reflinas, S.Pd", "ruangan": "XI.F2", "kondisi": "Rusak Ringan", "keterangan": ""}, {"id": "embed_88_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "Reflinas, S.Pd", "ruangan": "XI.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_89_b", "nama": "Kemoceng", "jumlah": 1, "pj": "Reflinas, S.Pd", "ruangan": "XI.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_90_b", "nama": "Meja guru", "jumlah": 1, "pj": "Reflinas, S.Pd", "ruangan": "XI.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_91_b", "nama": "Papan tulis", "jumlah": 1, "pj": "Reflinas, S.Pd", "ruangan": "XI.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_92_b", "nama": "CCTV", "jumlah": 1, "pj": "Reflinas, S.Pd", "ruangan": "XI.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_93_b", "nama": "Infocus", "jumlah": 1, "pj": "Reflinas, S.Pd", "ruangan": "XI.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_94_b", "nama": "Meja siswa", "jumlah": 18, "pj": "Reflinas, S.Pd", "ruangan": "XI.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_95_b", "nama": "Kursi siswa", "jumlah": 18, "pj": "Reflinas, S.Pd", "ruangan": "XI.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_96_b", "nama": "Kursi guru", "jumlah": 1, "pj": "Reflinas, S.Pd", "ruangan": "XI.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_97_b", "nama": "Meja guru", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "X.E1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_98_b", "nama": "Meja siswa", "jumlah": 18, "pj": "Resta, S.Pd", "ruangan": "X.E1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_99_b", "nama": "Kursi siswa", "jumlah": 18, "pj": "Resta, S.Pd", "ruangan": "X.E1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_100_b", "nama": "Kursi guru", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "X.E1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_101_b", "nama": "Papan tulis", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "X.E1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_102_b", "nama": "Sapu", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "X.E1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_103_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "X.E1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_104_b", "nama": "Kemoceng", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "X.E1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_105_b", "nama": "Kain pel", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "X.E1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_106_b", "nama": "Lemari", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "X.E1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_107_rr", "nama": "Infocus", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "X.E1", "kondisi": "Rusak Ringan", "keterangan": ""}, {"id": "embed_108_rr", "nama": "CCTV", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "X.E1", "kondisi": "Rusak Ringan", "keterangan": ""}, {"id": "embed_109_b", "nama": "AC", "jumlah": 4, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_110_b", "nama": "Rak buku", "jumlah": 11, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_111_b", "nama": "Meja baca", "jumlah": 9, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_112_b", "nama": "Komputer perpustakaan", "jumlah": 2, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_113_b", "nama": "Meja sirkulasi", "jumlah": 1, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_114_b", "nama": "Meja kerja pustakawan", "jumlah": 2, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_115_b", "nama": "Kursi guru", "jumlah": 1, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_115_rr", "nama": "Kursi guru", "jumlah": 2, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Rusak Ringan", "keterangan": ""}, {"id": "embed_116_b", "nama": "Kursi baca", "jumlah": 12, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_117_b", "nama": "Lemari", "jumlah": 1, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_118_b", "nama": "Papan pengumuman", "jumlah": 1, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_119_b", "nama": "Jam dinding", "jumlah": 1, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_120_b", "nama": "Tempat sampah", "jumlah": 1, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_121_b", "nama": "Kemoceng", "jumlah": 1, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_122_b", "nama": "Sapu", "jumlah": 1, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_123_b", "nama": "Kain pel", "jumlah": 1, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_124_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_125_b", "nama": "Karpet", "jumlah": 2, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_126_rr", "nama": "Rak besi", "jumlah": 1, "pj": "Risman, S.Ag", "ruangan": "Perpustakaan", "kondisi": "Rusak Ringan", "keterangan": ""}, {"id": "embed_127_b", "nama": "Meja guru", "jumlah": 1, "pj": "Siti Fatimah, S.Pd", "ruangan": "X.E3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_128_b", "nama": "Kursi guru", "jumlah": 1, "pj": "Siti Fatimah, S.Pd", "ruangan": "X.E3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_129_b", "nama": "Infocus", "jumlah": 1, "pj": "Siti Fatimah, S.Pd", "ruangan": "X.E3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_130_b", "nama": "CCTV", "jumlah": 1, "pj": "Siti Fatimah, S.Pd", "ruangan": "X.E3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_131_b", "nama": "Meja siswa", "jumlah": 18, "pj": "Siti Fatimah, S.Pd", "ruangan": "X.E3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_132_b", "nama": "Kursi siswa", "jumlah": 18, "pj": "Siti Fatimah, S.Pd", "ruangan": "X.E3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_133_b", "nama": "Lemari", "jumlah": 1, "pj": "Siti Fatimah, S.Pd", "ruangan": "X.E3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_134_b", "nama": "Papan tulis", "jumlah": 1, "pj": "Siti Fatimah, S.Pd", "ruangan": "X.E3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_135_b", "nama": "Kemoceng", "jumlah": 1, "pj": "Siti Fatimah, S.Pd", "ruangan": "X.E3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_136_b", "nama": "Sapu", "jumlah": 1, "pj": "Siti Fatimah, S.Pd", "ruangan": "X.E3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_137_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "Siti Fatimah, S.Pd", "ruangan": "X.E3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_138_b", "nama": "Kain pel", "jumlah": 1, "pj": "Siti Fatimah, S.Pd", "ruangan": "X.E3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_139_b", "nama": "Sapu", "jumlah": 1, "pj": "Aswir, S.Pd", "ruangan": "XI.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_140_b", "nama": "Kain pel", "jumlah": 1, "pj": "Aswir, S.Pd", "ruangan": "XI.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_141_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "Aswir, S.Pd", "ruangan": "XI.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_142_b", "nama": "Kemoceng", "jumlah": 1, "pj": "Aswir, S.Pd", "ruangan": "XI.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_143_b", "nama": "Meja guru", "jumlah": 1, "pj": "Aswir, S.Pd", "ruangan": "XI.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_144_b", "nama": "Kursi guru", "jumlah": 1, "pj": "Aswir, S.Pd", "ruangan": "XI.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_145_b", "nama": "Meja siswa", "jumlah": 18, "pj": "Aswir, S.Pd", "ruangan": "XI.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_146_b", "nama": "Kursi siswa", "jumlah": 18, "pj": "Aswir, S.Pd", "ruangan": "XI.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_147_b", "nama": "Papan tulis", "jumlah": 1, "pj": "Aswir, S.Pd", "ruangan": "XI.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_148_b", "nama": "CCTV", "jumlah": 1, "pj": "Aswir, S.Pd", "ruangan": "XI.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_149_b", "nama": "Infocus", "jumlah": 1, "pj": "Aswir, S.Pd", "ruangan": "XI.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_150_b", "nama": "Meja guru", "jumlah": 1, "pj": "Yusmelasari, S.Pd", "ruangan": "XII.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_151_b", "nama": "Kursi guru", "jumlah": 1, "pj": "Yusmelasari, S.Pd", "ruangan": "XII.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_152_b", "nama": "Meja siswa", "jumlah": 18, "pj": "Yusmelasari, S.Pd", "ruangan": "XII.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_153_b", "nama": "Kursi siswa", "jumlah": 18, "pj": "Yusmelasari, S.Pd", "ruangan": "XII.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_154_b", "nama": "Papan tulis", "jumlah": 1, "pj": "Yusmelasari, S.Pd", "ruangan": "XII.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_155_b", "nama": "CCTV", "jumlah": 1, "pj": "Yusmelasari, S.Pd", "ruangan": "XII.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_156_b", "nama": "Infocus", "jumlah": 1, "pj": "Yusmelasari, S.Pd", "ruangan": "XII.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_157_b", "nama": "Kemoceng", "jumlah": 1, "pj": "Yusmelasari, S.Pd", "ruangan": "XII.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_158_b", "nama": "Sapu", "jumlah": 1, "pj": "Yusmelasari, S.Pd", "ruangan": "XII.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_159_b", "nama": "Kain pel", "jumlah": 1, "pj": "Yusmelasari, S.Pd", "ruangan": "XII.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_160_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "Yusmelasari, S.Pd", "ruangan": "XII.F1", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_161_b", "nama": "Sapu", "jumlah": 1, "pj": "Febriyeni, S.Pd", "ruangan": "XII.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_162_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "Febriyeni, S.Pd", "ruangan": "XII.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_163_b", "nama": "Kain pel", "jumlah": 1, "pj": "Febriyeni, S.Pd", "ruangan": "XII.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_164_b", "nama": "Kemoceng", "jumlah": 1, "pj": "Febriyeni, S.Pd", "ruangan": "XII.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_165_b", "nama": "Meja guru", "jumlah": 1, "pj": "Febriyeni, S.Pd", "ruangan": "XII.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_166_b", "nama": "Kursi guru", "jumlah": 1, "pj": "Febriyeni, S.Pd", "ruangan": "XII.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_167_b", "nama": "Papan tulis", "jumlah": 1, "pj": "Febriyeni, S.Pd", "ruangan": "XII.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_168_b", "nama": "Infocus", "jumlah": 1, "pj": "Febriyeni, S.Pd", "ruangan": "XII.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_169_b", "nama": "CCTV", "jumlah": 1, "pj": "Febriyeni, S.Pd", "ruangan": "XII.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_170_b", "nama": "Meja siswa", "jumlah": 18, "pj": "Febriyeni, S.Pd", "ruangan": "XII.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_171_b", "nama": "Kursi siswa", "jumlah": 18, "pj": "Febriyeni, S.Pd", "ruangan": "XII.F2", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_172_b", "nama": "Sapu", "jumlah": 1, "pj": "Zulhedi, S.Pd", "ruangan": "X.E4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_173_b", "nama": "Kain pel", "jumlah": 1, "pj": "Zulhedi, S.Pd", "ruangan": "X.E4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_174_b", "nama": "Kemoceng", "jumlah": 1, "pj": "Zulhedi, S.Pd", "ruangan": "X.E4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_175_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "Zulhedi, S.Pd", "ruangan": "X.E4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_176_b", "nama": "Infocus", "jumlah": 1, "pj": "Zulhedi, S.Pd", "ruangan": "X.E4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_177_b", "nama": "CCTV", "jumlah": 1, "pj": "Zulhedi, S.Pd", "ruangan": "X.E4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_178_b", "nama": "Papan tulis", "jumlah": 1, "pj": "Zulhedi, S.Pd", "ruangan": "X.E4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_179_b", "nama": "Meja siswa", "jumlah": 18, "pj": "Zulhedi, S.Pd", "ruangan": "X.E4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_180_b", "nama": "Kursi siswa", "jumlah": 18, "pj": "Zulhedi, S.Pd", "ruangan": "X.E4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_181_b", "nama": "Meja guru", "jumlah": 1, "pj": "Zulhedi, S.Pd", "ruangan": "X.E4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_182_b", "nama": "Lemari loker", "jumlah": 1, "pj": "Zulhedi, S.Pd", "ruangan": "X.E4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_182_rr", "nama": "Lemari loker", "jumlah": 1, "pj": "Zulhedi, S.Pd", "ruangan": "X.E4", "kondisi": "Rusak Ringan", "keterangan": ""}, {"id": "embed_183_b", "nama": "Kursi guru", "jumlah": 1, "pj": "Zulhedi, S.Pd", "ruangan": "X.E4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_184_b", "nama": "Kemoceng", "jumlah": 1, "pj": "Ria Arda Leni, S.Pd", "ruangan": "XII.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_185_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "Ria Arda Leni, S.Pd", "ruangan": "XII.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_186_b", "nama": "Kain pel", "jumlah": 1, "pj": "Ria Arda Leni, S.Pd", "ruangan": "XII.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_187_b", "nama": "Sapu", "jumlah": 1, "pj": "Ria Arda Leni, S.Pd", "ruangan": "XII.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_188_b", "nama": "Papan tulis", "jumlah": 1, "pj": "Ria Arda Leni, S.Pd", "ruangan": "XII.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_189_b", "nama": "Meja guru", "jumlah": 1, "pj": "Ria Arda Leni, S.Pd", "ruangan": "XII.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_190_b", "nama": "Kursi guru", "jumlah": 1, "pj": "Ria Arda Leni, S.Pd", "ruangan": "XII.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_191_b", "nama": "Infocus", "jumlah": 1, "pj": "Ria Arda Leni, S.Pd", "ruangan": "XII.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_192_b", "nama": "CCTV", "jumlah": 1, "pj": "Ria Arda Leni, S.Pd", "ruangan": "XII.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_193_b", "nama": "Meja siswa", "jumlah": 18, "pj": "Ria Arda Leni, S.Pd", "ruangan": "XII.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_194_b", "nama": "Kursi siswa", "jumlah": 18, "pj": "Ria Arda Leni, S.Pd", "ruangan": "XII.F3", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_195_b", "nama": "Sapu", "jumlah": 1, "pj": "Nita Rahmi, S.Pd", "ruangan": "XII.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_196_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "Nita Rahmi, S.Pd", "ruangan": "XII.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_197_b", "nama": "Kain pel", "jumlah": 1, "pj": "Nita Rahmi, S.Pd", "ruangan": "XII.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_198_b", "nama": "Kemoceng", "jumlah": 1, "pj": "Nita Rahmi, S.Pd", "ruangan": "XII.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_199_b", "nama": "Meja guru", "jumlah": 1, "pj": "Nita Rahmi, S.Pd", "ruangan": "XII.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_200_b", "nama": "Kursi guru", "jumlah": 1, "pj": "Nita Rahmi, S.Pd", "ruangan": "XII.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_201_b", "nama": "Infocus", "jumlah": 1, "pj": "Nita Rahmi, S.Pd", "ruangan": "XII.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_202_b", "nama": "Papan tulis", "jumlah": 1, "pj": "Nita Rahmi, S.Pd", "ruangan": "XII.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_203_b", "nama": "CCTV", "jumlah": 1, "pj": "Nita Rahmi, S.Pd", "ruangan": "XII.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_204_b", "nama": "Meja siswa", "jumlah": 18, "pj": "Nita Rahmi, S.Pd", "ruangan": "XII.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_205_b", "nama": "Kursi siswa", "jumlah": 18, "pj": "Nita Rahmi, S.Pd", "ruangan": "XII.F4", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_206_b", "nama": "Mikroskop cahaya", "jumlah": 10, "pj": "Resta, S.Pd", "ruangan": "Lab IPA", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_207_b", "nama": "Tabung reaksi", "jumlah": 50, "pj": "Resta, S.Pd", "ruangan": "Lab IPA", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_208_b", "nama": "Rak tabung reaksi", "jumlah": 5, "pj": "Resta, S.Pd", "ruangan": "Lab IPA", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_209_b", "nama": "Gelas ukur 100 ml", "jumlah": 10, "pj": "Resta, S.Pd", "ruangan": "Lab IPA", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_210_b", "nama": "Meja praktikum", "jumlah": 6, "pj": "Resta, S.Pd", "ruangan": "Lab IPA", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_211_b", "nama": "Kursi", "jumlah": 23, "pj": "Resta, S.Pd", "ruangan": "Lab IPA", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_211_rb", "nama": "Kursi", "jumlah": 2, "pj": "Resta, S.Pd", "ruangan": "Lab IPA", "kondisi": "Rusak Berat", "keterangan": ""}, {"id": "embed_212_b", "nama": "Lemari penyimpanan alat", "jumlah": 2, "pj": "Resta, S.Pd", "ruangan": "Lab IPA", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_213_b", "nama": "Pembakar spirtus", "jumlah": 8, "pj": "Resta, S.Pd", "ruangan": "Lab IPA", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_214_b", "nama": "Sapu", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "Lab IPA", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_215_b", "nama": "Kain pel", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "Lab IPA", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_216_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "Lab IPA", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_217_b", "nama": "Kemoceng", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "Lab IPA", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_218_b", "nama": "Meja guru", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "Lab IPA", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_219_b", "nama": "Kursi guru", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "Lab IPA", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_220_b", "nama": "Papan tulis", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "Lab IPA", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_221_b", "nama": "CCTV", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "Lab IPA", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_222_rb", "nama": "Infocus", "jumlah": 1, "pj": "Resta, S.Pd", "ruangan": "Lab IPA", "kondisi": "Rusak Berat", "keterangan": ""}, {"id": "embed_223_b", "nama": "Komputer Server", "jumlah": 1, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_224_b", "nama": "Komputer Client", "jumlah": 25, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_225_b", "nama": "Switch / Hub 24 Port", "jumlah": 2, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_226_b", "nama": "Router Mikrotik", "jumlah": 1, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_227_b", "nama": "AC Split 1.5 PK", "jumlah": 2, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_228_b", "nama": "Meja Komputer Panjang", "jumlah": 13, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_229_b", "nama": "Kursi Laboratorium", "jumlah": 26, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_230_b", "nama": "Proyektor / InFocus", "jumlah": 1, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_231_b", "nama": "Layar Proyektor (Screen)", "jumlah": 1, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_232_b", "nama": "Printer Multifungsi", "jumlah": 1, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_233_b", "nama": "UPS 1200VA", "jumlah": 2, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_234_b", "nama": "Papan Tulis Whiteboard", "jumlah": 1, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_235_b", "nama": "Meja Instruktur / Guru", "jumlah": 1, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_236_b", "nama": "Kursi Kerja Guru", "jumlah": 1, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_237_b", "nama": "CCTV Kamera", "jumlah": 2, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_238_b", "nama": "Sapu Plastik", "jumlah": 1, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_239_b", "nama": "Kain Pel Lantai", "jumlah": 1, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_240_b", "nama": "Pengki / Sekop Sampah", "jumlah": 1, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_241_b", "nama": "Kemoceng", "jumlah": 1, "pj": "Lilis Fitria, S.Kom", "ruangan": "Lab Komputer", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_242_b", "nama": "Sapu", "jumlah": 1, "pj": "Kasmawarni, S.Ag", "ruangan": "Mushalla", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_243_b", "nama": "Kemoceng", "jumlah": 1, "pj": "Kasmawarni, S.Ag", "ruangan": "Mushalla", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_244_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "Kasmawarni, S.Ag", "ruangan": "Mushalla", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_245_b", "nama": "Kain pel", "jumlah": 1, "pj": "Kasmawarni, S.Ag", "ruangan": "Mushalla", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_246_b", "nama": "Al-Qur'an", "jumlah": 30, "pj": "Kasmawarni, S.Ag", "ruangan": "Mushalla", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_247_b", "nama": "Mukena", "jumlah": 10, "pj": "Kasmawarni, S.Ag", "ruangan": "Mushalla", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_248_b", "nama": "Sajadah panjang (gulung)", "jumlah": 5, "pj": "Kasmawarni, S.Ag", "ruangan": "Mushalla", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_249_b", "nama": "Sound system wireless / pengeras suara", "jumlah": 1, "pj": "Kasmawarni, S.Ag", "ruangan": "Mushalla", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_250_b", "nama": "Mikrofon", "jumlah": 2, "pj": "Kasmawarni, S.Ag", "ruangan": "Mushalla", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_251_b", "nama": "Mimbar / podium kecil", "jumlah": 1, "pj": "Kasmawarni, S.Ag", "ruangan": "Mushalla", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_252_b", "nama": "Lemari penyimpanan Al-Qur'an", "jumlah": 2, "pj": "Kasmawarni, S.Ag", "ruangan": "Mushalla", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_253_b", "nama": "Kipas angin dinding", "jumlah": 4, "pj": "Kasmawarni, S.Ag", "ruangan": "Mushalla", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_254_b", "nama": "Jam dinding", "jumlah": 1, "pj": "Kasmawarni, S.Ag", "ruangan": "Mushalla", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_255_b", "nama": "Papan jadwal sholat", "jumlah": 1, "pj": "Kasmawarni, S.Ag", "ruangan": "Mushalla", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_256_b", "nama": "Sapu lidi wudhu", "jumlah": 1, "pj": "Kasmawarni, S.Ag", "ruangan": "Mushalla", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_257_b", "nama": "Tempat sandal / sepatu", "jumlah": 2, "pj": "Kasmawarni, S.Ag", "ruangan": "Mushalla", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_258_b", "nama": "Tempat cuci tangan / wastafel", "jumlah": 1, "pj": "Kasmawarni, S.Ag", "ruangan": "Mushalla", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_259_b", "nama": "Sapu lantai", "jumlah": 1, "pj": "Nia Novitri, S.Pd", "ruangan": "Keterampilan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_260_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "Nia Novitri, S.Pd", "ruangan": "Keterampilan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_261_b", "nama": "Kain pel", "jumlah": 1, "pj": "Nia Novitri, S.Pd", "ruangan": "Keterampilan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_262_b", "nama": "Kemoceng", "jumlah": 1, "pj": "Nia Novitri, S.Pd", "ruangan": "Keterampilan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_263_b", "nama": "Mesin jahit manual / listrik", "jumlah": 10, "pj": "Nia Novitri, S.Pd", "ruangan": "Keterampilan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_264_b", "nama": "Mesin obras", "jumlah": 2, "pj": "Nia Novitri, S.Pd", "ruangan": "Keterampilan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_265_b", "nama": "Meja potong kain", "jumlah": 2, "pj": "Nia Novitri, S.Pd", "ruangan": "Keterampilan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_266_b", "nama": "Gunting kain / konveksi", "jumlah": 10, "pj": "Nia Novitri, S.Pd", "ruangan": "Keterampilan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_267_b", "nama": "Manekin / patung jahit", "jumlah": 4, "pj": "Nia Novitri, S.Pd", "ruangan": "Keterampilan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_268_b", "nama": "Setrika listrik", "jumlah": 2, "pj": "Nia Novitri, S.Pd", "ruangan": "Keterampilan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_269_b", "nama": "Papan setrika", "jumlah": 2, "pj": "Nia Novitri, S.Pd", "ruangan": "Keterampilan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_270_b", "nama": "Lemari penyimpanan alat / bahan", "jumlah": 2, "pj": "Nia Novitri, S.Pd", "ruangan": "Keterampilan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_271_b", "nama": "Meja kerja / praktikum", "jumlah": 5, "pj": "Nia Novitri, S.Pd", "ruangan": "Keterampilan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_272_b", "nama": "Kursi praktikum", "jumlah": 15, "pj": "Nia Novitri, S.Pd", "ruangan": "Keterampilan", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_273_b", "nama": "Sapu", "jumlah": 1, "pj": "Ahmad, S.Kom", "ruangan": "Lab Robotik", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_274_b", "nama": "Sekop sampah", "jumlah": 1, "pj": "Ahmad, S.Kom", "ruangan": "Lab Robotik", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_275_b", "nama": "Kemoceng", "jumlah": 1, "pj": "Ahmad, S.Kom", "ruangan": "Lab Robotik", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_276_b", "nama": "Kain pel", "jumlah": 1, "pj": "Ahmad, S.Kom", "ruangan": "Lab Robotik", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_277_b", "nama": "Kit robotik / Mikrokontroler Arduino", "jumlah": 10, "pj": "Ahmad, S.Kom", "ruangan": "Lab Robotik", "kondisi": "Baik", "keterangan": ""}, {"id": "embed_278_rb", "nama": "CPU", "jumlah": 10, "pj": "Ahmad, S.Kom", "ruangan": "Lab Robotik", "kondisi": "Rusak Berat", "keterangan": ""}];
+
+        const defaultConfig = {
+            logoUrl: 'https://lh3.googleusercontent.com/d/1000109313.jpg',
+            bgUrl: '',
+            location: 'Kec. Sungayang',
+            district: 'Kabupaten Tanah Datar',
+            heading: 'Manajemen Inventaris Ruangan Madrasah',
+            desc: 'Pantau kondisi aset, fasilitas kelas, laboratorium, dan sarana prasarana MAN 1 Tanah Datar Plus Keterampilan secara real-time dan transparan.'
+        };
+
+        let appConfig = JSON.parse(localStorage.getItem('dbr_config')) || defaultConfig;
+        
+        // Menggunakan embeddedData secara default jika LocalStorage belum pernah diisi
+        let inventoryData = JSON.parse(localStorage.getItem('dbr_data')) || embeddedData;
+        let isAdmin = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            applyAppConfig();
+            lucide.createIcons();
+            populateRoomFilter();
+            renderData();
+        });
+
+        function applyAppConfig() {
+            if (appConfig.logoUrl) {
+                document.getElementById('app-logo').src = appConfig.logoUrl;
+            }
+            if (appConfig.bgUrl) {
+                document.getElementById('hero-section').style.backgroundImage = `url('${appConfig.bgUrl}')`;
+            } else {
+                document.getElementById('hero-section').style.backgroundImage = 'none';
+            }
+            
+            document.getElementById('banner-location').innerText = appConfig.location || 'Kec. Sungayang';
+            document.getElementById('banner-district').innerText = appConfig.district || 'Kabupaten Tanah Datar';
+            document.getElementById('banner-heading').innerText = appConfig.heading || 'Manajemen Inventaris Ruangan Madrasah';
+            document.getElementById('banner-desc').innerText = appConfig.desc || '';
+            document.getElementById('footer-text').innerHTML = `&copy; 2026 MAN 1 Tanah Datar Plus Keterampilan — ${appConfig.location || 'Sungayang'}`;
+        }
+
+        function openSettingsModal() {
+            document.getElementById('set-logo-url').value = appConfig.logoUrl || '';
+            document.getElementById('set-bg-url').value = appConfig.bgUrl || '';
+            document.getElementById('set-location').value = appConfig.location || '';
+            document.getElementById('set-district').value = appConfig.district || '';
+            document.getElementById('set-heading').value = appConfig.heading || '';
+            document.getElementById('set-desc').value = appConfig.desc || '';
+            toggleModal('settings-modal');
+        }
+
+        function saveAppSettings(e) {
+            e.preventDefault();
+            appConfig = {
+                logoUrl: document.getElementById('set-logo-url').value,
+                bgUrl: document.getElementById('set-bg-url').value,
+                location: document.getElementById('set-location').value,
+                district: document.getElementById('set-district').value,
+                heading: document.getElementById('set-heading').value,
+                desc: document.getElementById('set-desc').value
+            };
+
+            localStorage.setItem('dbr_config', JSON.stringify(appConfig));
+            applyAppConfig();
+            toggleModal('settings-modal');
+        }
+
+        function handleImageUpload(e, targetInputId) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                document.getElementById(targetInputId).value = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function resetAppConfig() {
+            if (confirm("Kembalikan tampilan ke pengaturan standar awal?")) {
+                appConfig = {...defaultConfig};
+                localStorage.setItem('dbr_config', JSON.stringify(appConfig));
+                applyAppConfig();
+                toggleModal('settings-modal');
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('dbr_data', JSON.stringify(inventoryData));
+            populateRoomFilter();
+            renderData();
+        }
+
+        function renderData(dataToRender = inventoryData) {
+            const tbody = document.getElementById('table-body');
+            const mobileCards = document.getElementById('mobile-cards');
+            tbody.innerHTML = '';
+            mobileCards.innerHTML = '';
+
+            let total = 0, baik = 0, rr = 0, rb = 0;
+
+            if (dataToRender.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-400 font-medium">Tidak ada data ditemukan.</td></tr>`;
+                mobileCards.innerHTML = `<div class="text-center py-8 text-slate-400 bg-white rounded-2xl border border-slate-200/80 font-medium text-xs">Tidak ada data ditemukan.</div>`;
+            } else {
+                dataToRender.forEach((item, index) => {
+                    const qty = Number(item.jumlah) || 1;
+                    total += qty;
+                    if (item.kondisi === 'Baik') baik += qty;
+                    else if (item.kondisi === 'Rusak Ringan') rr += qty;
+                    else if (item.kondisi === 'Rusak Berat') rb += qty;
+
+                    let badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
+                    if (item.kondisi === 'Rusak Ringan') badgeClass = "bg-amber-50 text-amber-700 border-amber-200";
+                    if (item.kondisi === 'Rusak Berat') badgeClass = "bg-rose-50 text-rose-700 border-rose-200";
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50/80 transition border-b border-slate-100";
+                    tr.innerHTML = `
+                        <td class="p-3.5 text-center text-slate-400 font-medium text-xs">${index + 1}</td>
+                        <td class="p-3.5 font-bold text-slate-800">${item.nama}</td>
+                        <td class="p-3.5 text-center"><span class="bg-slate-100 px-2.5 py-1 rounded-lg font-bold text-xs text-slate-700">${item.jumlah}</span></td>
+                        <td class="p-3.5 text-slate-600 font-medium">${item.ruangan}</td>
+                        <td class="p-3.5 text-slate-600">${item.pj || '-'}</td>
+                        <td class="p-3.5 text-center">
+                            <span class="text-[11px] px-3 py-1 rounded-full border font-bold inline-block ${badgeClass}">${item.kondisi}</span>
+                        </td>
+                        <td class="p-3.5 text-xs text-slate-500 max-w-xs truncate">${item.keterangan || '-'}</td>
+                        <td class="p-3.5 text-center admin-col ${isAdmin ? '' : 'hidden'}">
+                            <div class="flex justify-center gap-1">
+                                <button onclick="editItem('${item.id}')" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                                <button onclick="deleteItem('${item.id}')" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between gap-3";
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-bold text-slate-800 text-sm">${item.nama}</h4>
+                                <span class="text-[10px] px-2.5 py-0.5 rounded-full border font-bold ${badgeClass}">${item.kondisi}</span>
+                            </div>
+                            <div class="text-xs text-slate-600 space-y-1">
+                                <p><span class="text-slate-400 font-medium">Ruangan:</span> <strong class="text-slate-700">${item.ruangan}</strong></p>
+                                <p><span class="text-slate-400 font-medium">Jumlah:</span> ${item.jumlah} Unit</p>
+                                <p><span class="text-slate-400 font-medium">PJ:</span> ${item.pj || '-'}</p>
+                                ${item.keterangan ? `<p class="text-slate-500 italic mt-1 text-[11px]">Catatan: ${item.keterangan}</p>` : ''}
+                            </div>
+                        </div>
+                        ${isAdmin ? `
+                        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                            <button onclick="editItem('${item.id}')" class="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl flex items-center gap-1 font-semibold"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit</button>
+                            <button onclick="deleteItem('${item.id}')" class="text-xs bg-rose-50 text-rose-600 px-3 py-1.5 rounded-xl flex items-center gap-1 font-semibold"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus</button>
+                        </div>
+                        ` : ''}
+                    `;
+                    mobileCards.appendChild(card);
+                });
+            }
+
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-baik').innerText = baik;
+            document.getElementById('stat-rr').innerText = rr;
+            document.getElementById('stat-rb').innerText = rb;
+
+            lucide.createIcons();
+        }
+
+        function applyFilters() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const ruangan = document.getElementById('filter-ruangan').value;
+            const kondisi = document.getElementById('filter-kondisi').value;
+
+            const filtered = inventoryData.filter(item => {
+                const matchQuery = item.nama.toLowerCase().includes(query) || (item.pj && item.pj.toLowerCase().includes(query));
+                const matchRuangan = ruangan === '' || item.ruangan === ruangan;
+                const matchKondisi = kondisi === '' || item.kondisi === kondisi;
+                return matchQuery && matchRuangan && matchKondisi;
+            });
+
+            renderData(filtered);
+        }
+
+        function populateRoomFilter() {
+            const select = document.getElementById('filter-ruangan');
+            const rooms = [...new Set(inventoryData.map(item => item.ruangan))];
+            
+            select.innerHTML = '<option value="">Semua Ruangan</option>';
+            rooms.forEach(room => {
+                if(room) {
+                    const option = document.createElement('option');
+                    option.value = room;
+                    option.textContent = room;
+                    select.appendChild(option);
+                }
+            });
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const pass = document.getElementById('admin-pass').value;
+            if (pass === "admin123") {
+                isAdmin = true;
+                toggleModal('login-modal');
+                document.getElementById('btn-show-login').classList.add('hidden');
+                document.getElementById('admin-badge').classList.remove('hidden');
+                document.getElementById('admin-actions').classList.remove('hidden');
+                document.querySelectorAll('.admin-col').forEach(el => el.classList.remove('hidden'));
+                document.getElementById('admin-pass').value = '';
+                document.getElementById('login-error').classList.add('hidden');
+                renderData();
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        }
+
+        function logoutAdmin() {
+            isAdmin = false;
+            document.getElementById('btn-show-login').classList.remove('hidden');
+            document.getElementById('admin-badge').classList.add('hidden');
+            document.getElementById('admin-actions').classList.add('hidden');
+            document.querySelectorAll('.admin-col').forEach(el => el.classList.add('hidden'));
+            renderData();
+        }
+
+        function toggleModal(id) {
+            document.getElementById(id).classList.toggle('hidden');
+        }
+
+        function openFormModal(editData = null) {
+            if (editData) {
+                document.getElementById('form-title').innerText = "Edit Data Barang";
+                document.getElementById('item-id').value = editData.id;
+                document.getElementById('input-nama').value = editData.nama;
+                document.getElementById('input-jumlah').value = editData.jumlah;
+                document.getElementById('input-kondisi').value = editData.kondisi;
+                document.getElementById('input-ruangan').value = editData.ruangan;
+                document.getElementById('input-pj').value = editData.pj || '';
+                document.getElementById('input-keterangan').value = editData.keterangan || '';
+            } else {
+                document.getElementById('form-title').innerText = "Tambah Barang DBR";
+                document.getElementById('item-id').value = '';
+                document.getElementById('input-nama').value = '';
+                document.getElementById('input-jumlah').value = 1;
+                document.getElementById('input-kondisi').value = 'Baik';
+                document.getElementById('input-ruangan').value = '';
+                document.getElementById('input-pj').value = '';
+                document.getElementById('input-keterangan').value = '';
+            }
+            toggleModal('form-modal');
+        }
+
+        function saveItem(e) {
+            e.preventDefault();
+            const id = document.getElementById('item-id').value;
+            const newItem = {
+                id: id || "item_" + Date.now(),
+                nama: document.getElementById('input-nama').value,
+                jumlah: Number(document.getElementById('input-jumlah').value),
+                kondisi: document.getElementById('input-kondisi').value,
+                ruangan: document.getElementById('input-ruangan').value,
+                pj: document.getElementById('input-pj').value,
+                keterangan: document.getElementById('input-keterangan').value
+            };
+
+            if (id) {
+                const index = inventoryData.findIndex(item => String(item.id) === String(id));
+                if (index !== -1) inventoryData[index] = newItem;
+            } else {
+                inventoryData.push(newItem);
+            }
+
+            saveData();
+            toggleModal('form-modal');
+        }
+
+        function editItem(id) {
+            const item = inventoryData.find(i => String(i.id) === String(id));
+            if (item) openFormModal(item);
+        }
+
+        function deleteItem(id) {
+            if (confirm("Apakah Anda yakin ingin menghapus data barang ini?")) {
+                inventoryData = inventoryData.filter(i => String(i.id) !== String(id));
+                saveData();
+            }
+        }
+
+        function importExcel(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const data = new Uint8Array(evt.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                let importedData = [];
+                let currentPJ = "";
+                let currentRuangan = "";
+
+                json.forEach((row, idx) => {
+                    if (row['Penanggungjawab'] && row['Penanggungjawab'].toString().trim() !== "") {
+                        currentPJ = row['Penanggungjawab'].toString().trim();
+                    }
+                    if (row['Ruangan'] && row['Ruangan'].toString().trim() !== "") {
+                        currentRuangan = row['Ruangan'].toString().trim();
+                    }
+
+                    const namaBarang = row['Nama Barang'] || row['nama'];
+                    if (!namaBarang) return;
+
+                    const baikQty = Number(row['Baik']) || 0;
+                    const rrQty = Number(row['Rusak Ringan']) || 0;
+                    const rbQty = Number(row['Rusak Berat']) || 0;
+
+                    if (baikQty > 0) {
+                        importedData.push({
+                            id: "imp_" + Date.now() + "_" + idx + "_b",
+                            nama: namaBarang,
+                            jumlah: baikQty,
+                            pj: currentPJ,
+                            ruangan: currentRuangan,
+                            kondisi: "Baik",
+                            keterangan: row['Keterangan'] || ""
+                        });
+                    }
+
+                    if (rrQty > 0) {
+                        importedData.push({
+                            id: "imp_" + Date.now() + "_" + idx + "_rr",
+                            nama: namaBarang,
+                            jumlah: rrQty,
+                            pj: currentPJ,
+                            ruangan: currentRuangan,
+                            kondisi: "Rusak Ringan",
+                            keterangan: row['Keterangan'] || ""
+                        });
+                    }
+
+                    if (rbQty > 0) {
+                        importedData.push({
+                            id: "imp_" + Date.now() + "_" + idx + "_rb",
+                            nama: namaBarang,
+                            jumlah: rbQty,
+                            pj: currentPJ,
+                            ruangan: currentRuangan,
+                            kondisi: "Rusak Berat",
+                            keterangan: row['Keterangan'] || ""
+                        });
+                    }
+                });
+
+                if (importedData.length > 0) {
+                    if (confirm(`Berhasil memproses ${importedData.length} entri data dari Excel DBR! Ganti seluruh data saat ini?`)) {
+                        inventoryData = importedData;
+                        saveData();
+                    }
+                } else {
+                    alert("Gagal membaca data Excel. Pastikan nama kolom header sesuai.");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function exportExcel() {
+            const exportFormat = inventoryData.map((item, index) => ({
+                'No': index + 1,
+                'Nama Barang': item.nama,
+                'Jumlah': item.jumlah,
+                'Lokasi Ruangan': item.ruangan,
+                'Penanggungjawab': item.pj,
+                'Kondisi': item.kondisi,
+                'Keterangan': item.keterangan
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(exportFormat);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan DBR");
+            
+            XLSX.writeFile(workbook, `DBR_MAN1TanahDatar_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }
+    </script>
+</body>
+</html>
